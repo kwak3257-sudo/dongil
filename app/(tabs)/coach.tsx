@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View, type ScrollViewInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, Chip, Label } from '@/components/ui';
@@ -15,7 +15,7 @@ export default function Coach() {
   const { profile, activeModules, completed, chat, pushChat } = useStore();
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
-  const scroll = useRef<ScrollView>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
   const mission = todayMission(activeModules, completed);
 
   const send = async (raw: string) => {

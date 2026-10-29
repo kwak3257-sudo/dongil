@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Body, Button, Card, Chip, Field, Label, Progress, Screen, Title, toNumber } from '@/components/ui';
@@ -13,17 +13,19 @@ import { won } from '@/lib/tools';
 export default function Records() {
   const params = useLocalSearchParams<{ methodId?: string; kind?: 'earned' | 'saved' }>();
   const { profile, records, activeModules, completed, addRecord, removeRecord, toggleStep } = useStore();
-  const [kind, setKind] = useState<'earned' | 'saved'>('saved');
+  const [kind, setKind] = useState<'earned' | 'saved'>(params.kind ?? 'saved');
   const [amount, setAmount] = useState('');
   const [memo, setMemo] = useState('');
-  const [methodId, setMethodId] = useState<string | undefined>(activeModules[0]);
+  const [methodId, setMethodId] = useState<string | undefined>(params.methodId ?? activeModules[0]);
   const [saved, setSaved] = useState('');
 
-  // 모듈의 '기록하러 가기'로 들어오면 값을 미리 채운다
-  useEffect(() => {
+  // 모듈의 '기록하러 가기'로 다시 들어오면 값을 미리 채운다
+  const [prevParams, setPrevParams] = useState({ kind: params.kind, methodId: params.methodId });
+  if (prevParams.kind !== params.kind || prevParams.methodId !== params.methodId) {
+    setPrevParams({ kind: params.kind, methodId: params.methodId });
     if (params.kind) setKind(params.kind);
     if (params.methodId) setMethodId(params.methodId);
-  }, [params.kind, params.methodId]);
+  }
 
   const totals = monthlyTotals(records);
   const goal = profile?.goalMonthly ?? 0;

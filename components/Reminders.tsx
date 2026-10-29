@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Body, Button, Card, Chip, Label } from '@/components/ui';
 import { Colors } from '@/constants/theme';
-import { remindersSupported, requestReminderPermission } from '@/lib/notify';
+import { remindersSupported, requestReminderPermission, sendTestReminder } from '@/lib/notify';
 import { useStore } from '@/lib/store';
 
 const MORNING = [7, 8, 9, 12];
@@ -54,6 +54,8 @@ export function ReminderSettingsCard() {
   const { enabled, morningHour, eveningHour } = useStore((s) => s.reminders);
   const setReminders = useStore((s) => s.setReminders);
   const { enable, denied } = useEnable();
+  const [testSent, setTestSent] = useState(false);
+  const test = async () => setTestSent(await sendTestReminder());
 
   return (
     <Card>
@@ -74,6 +76,8 @@ export function ReminderSettingsCard() {
               <Chip key={h} label={hourLabel(h)} selected={eveningHour === h} onPress={() => setReminders({ eveningHour: h })} />
             ))}
           </View>
+          <Button testID="reminder-test" title="테스트 알림 보내기 (10초 뒤)" kind="secondary" onPress={test} />
+          {testSent && <Body muted>10초 뒤에 알림이 와요. 홈 화면으로 나가서 기다려 보세요.</Body>}
           <Button title="알림 끄기" kind="ghost" onPress={() => setReminders({ enabled: false })} />
         </>
       ) : (
