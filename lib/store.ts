@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { recommendStart } from './ranking';
+import { DEFAULT_REMINDERS, type ReminderSettings } from './reminders';
 import type { ChatMessage, MoneyRecord, Profile } from './types';
 
 interface State {
@@ -14,6 +15,7 @@ interface State {
   lastProgressAt: string | null;
   records: MoneyRecord[];
   chat: ChatMessage[];
+  reminders: ReminderSettings;
   completeOnboarding: (profile: Profile) => void;
   toggleStep: (stepId: string) => void;
   startModule: (methodId: string) => void;
@@ -21,6 +23,7 @@ interface State {
   addRecord: (r: Omit<MoneyRecord, 'id' | 'date'> & { date?: string }) => void;
   removeRecord: (id: string) => void;
   pushChat: (m: ChatMessage) => void;
+  setReminders: (patch: Partial<ReminderSettings>) => void;
   resetAll: () => void;
 }
 
@@ -32,6 +35,7 @@ const initial = {
   lastProgressAt: null,
   records: [] as MoneyRecord[],
   chat: [] as ChatMessage[],
+  reminders: DEFAULT_REMINDERS,
 };
 
 const newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -75,6 +79,7 @@ export const useStore = create<State>()(
       },
       removeRecord: (id) => set({ records: get().records.filter((r) => r.id !== id) }),
       pushChat: (m) => set({ chat: [...get().chat, m].slice(-100) }),
+      setReminders: (patch) => set({ reminders: { ...get().reminders, ...patch } }),
       resetAll: () => set({ ...initial }),
     }),
     {

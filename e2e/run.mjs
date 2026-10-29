@@ -128,6 +128,7 @@ try {
   await shot('10-profile');
   const profText = await page.locator('body').innerText();
   check('프로필에 답변 표시', profText.includes('디자인') && profText.includes('500,000원'));
+  check('웹에서는 알림 대신 안내 문구', profText.includes('휴대폰 앱에서만') && !profText.includes('알림 받기'));
   await text('처음부터 다시 하기').click();
   await tid('confirm-reset').click();
   await text('첫 수익까지').waitFor({ timeout: 10000 });

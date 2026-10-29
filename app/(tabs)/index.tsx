@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Logo } from '@/components/Logo';
+import { ReminderPrompt } from '@/components/Reminders';
 import { Body, Button, Card, Label, Progress, Screen } from '@/components/ui';
 import { Colors, Fonts } from '@/constants/theme';
 import { escortState, firstIncomeMap, smallerStep, todayMission } from '@/lib/escort';
@@ -89,6 +90,8 @@ export default function Today() {
           </Card>
         );
       })}
+
+      <ReminderPrompt />
 
       <Card>
         <Label>이번 달 성과</Label>
