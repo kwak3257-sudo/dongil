@@ -8,17 +8,19 @@ import { Colors, Fonts } from '@/constants/theme';
 import { escortState, firstIncomeMap, smallerStep, todayMission } from '@/lib/escort';
 import { methodById } from '@/lib/methods';
 import { PHASE_LABEL } from '@/lib/modules';
+import { nextModule } from '@/lib/progress';
 import { monthlyTotals } from '@/lib/records';
 import { useStore } from '@/lib/store';
 import { won } from '@/lib/tools';
 
 export default function Today() {
   const router = useRouter();
-  const { profile, activeModules, completed, lastProgressAt, startedAt, records, toggleStep } = useStore();
+  const { profile, activeModules, completed, lastProgressAt, startedAt, records, completeStep, startModule } = useStore();
   const mission = todayMission(activeModules, completed);
   const state = escortState(lastProgressAt, startedAt);
   const totals = monthlyTotals(records);
   const goal = profile?.goalMonthly ?? 0;
+  const next = !mission && profile ? nextModule(profile, activeModules, completed) : null;
 
   return (
     <Screen>
@@ -56,21 +58,37 @@ export default function Today() {
           </View>
           <View style={styles.actions}>
             <View style={{ flex: 1 }}>
-              <Button testID="mission-done" title="완료했어요" kind="secondary" onPress={() => toggleStep(mission.step.id)} />
+              {mission.step.proof ? (
+                <Button
+                  testID="mission-record"
+                  title="기록하러 가기"
+                  kind="secondary"
+                  onPress={() => router.push({ pathname: '/records', params: { methodId: mission.methodId, kind: mission.step.proof } })}
+                />
+              ) : (
+                <Button testID="mission-done" title="완료했어요" kind="secondary" onPress={() => completeStep(mission.step.id)} />
+              )}
             </View>
             <View style={{ flex: 1 }}>
               <Button title="자세히 보기" kind="light" onPress={() => router.push(`/module/${mission.methodId}`)} />
             </View>
           </View>
           {mission.step.proof && (
-            <Text style={styles.proofHint}>이 단계는 {mission.step.proof === 'earned' ? '번 돈' : '아낀 돈'}을 기록 탭에 남겨야 진짜 완료예요.</Text>
+            <Text style={styles.proofHint}>이 단계는 체크로 끝나지 않아요. 실제로 {mission.step.proof === 'earned' ? '번 돈' : '아낀 돈'}을 기록하면 자동으로 완료돼요.</Text>
           )}
         </Card>
       ) : (
         <Card accent>
-          <Text style={styles.missionTitle}>진행 중인 모듈을 모두 끝냈어요!</Text>
-          <Text style={styles.missionMeta}>돈길 지도에서 다음 방법을 골라 이어 가요.</Text>
-          <Button title="돈길 지도 열기" kind="secondary" onPress={() => router.push('/modules')} />
+          <Text style={styles.missionTitle}>진행 중인 길을 모두 완주했어요! 🎉</Text>
+          {next ? (
+            <>
+              <Text style={styles.missionMeta}>나에게 맞는 다음 길은 &quot;{next.name}&quot;이에요. {next.summary}</Text>
+              <Button testID="home-start-next" title={`${next.name} 시작하기`} kind="secondary" onPress={() => startModule(next.id)} />
+            </>
+          ) : (
+            <Text style={styles.missionMeta}>지금 열린 모듈은 모두 끝냈어요. 새 모듈이 열리면 알려 드릴게요.</Text>
+          )}
+          <Button title="돈길 지도 보기" kind="light" onPress={() => router.push('/modules')} />
         </Card>
       )}
 

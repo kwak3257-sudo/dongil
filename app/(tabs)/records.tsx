@@ -5,14 +5,13 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Body, Button, Card, Chip, Field, Label, Progress, Screen, Title, toNumber } from '@/components/ui';
 import { Colors, Fonts } from '@/constants/theme';
 import { methodById } from '@/lib/methods';
-import { moduleFor } from '@/lib/modules';
 import { monthlyTotals } from '@/lib/records';
 import { useStore } from '@/lib/store';
 import { won } from '@/lib/tools';
 
 export default function Records() {
   const params = useLocalSearchParams<{ methodId?: string; kind?: 'earned' | 'saved' }>();
-  const { profile, records, activeModules, completed, addRecord, removeRecord, toggleStep } = useStore();
+  const { profile, records, activeModules, addRecord, removeRecord } = useStore();
   const [kind, setKind] = useState<'earned' | 'saved'>(params.kind ?? 'saved');
   const [amount, setAmount] = useState('');
   const [memo, setMemo] = useState('');
@@ -33,11 +32,7 @@ export default function Records() {
   const submit = () => {
     const value = toNumber(amount);
     if (value <= 0) return;
-    addRecord({ kind, amount: value, methodId, memo: memo.trim() || undefined });
-    // 지금 할 차례인 단계가 같은 종류의 '기록' 단계면 함께 완료 처리 (완료 인증)
-    const next = methodId ? moduleFor(methodId)?.steps.find((s) => !completed[s.id]) : undefined;
-    const proofStep = next?.proof === kind ? next : undefined;
-    if (proofStep) toggleStep(proofStep.id);
+    const proofStep = addRecord({ kind, amount: value, methodId, memo: memo.trim() || undefined });
     setAmount('');
     setMemo('');
     setSaved(proofStep ? `기록했어요. "${proofStep.title}" 단계도 완료했어요!` : '기록했어요.');

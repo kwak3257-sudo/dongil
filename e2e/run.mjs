@@ -162,6 +162,38 @@ try {
   const home2 = await page.locator('body').innerText();
   check('첫 절약 지도 도착 표시', home2.includes('첫 절약 단계에 도착했어요'));
   await shot('12-home-reached');
+
+  // 시나리오 3: 체크만 눌러서는 끝낼 수 없음 (순서 잠금, 기록 단계, 완주 화면)
+  const checked = async (id) => (await tid(`check-${id}`).getAttribute('aria-checked')) === 'true';
+  await page.goto('http://localhost:8099/module/freelance', { waitUntil: 'networkidle' });
+  await tid('start-module').click();
+  await tid('check-fr-3').click();
+  await page.waitForTimeout(200);
+  check('잠긴 단계는 체크되지 않음', !(await checked('fr-3')) && (await text('앞 단계를 끝내면 열려요').isVisible()));
+  for (const n of [1, 2, 3, 4, 5, 6, 7]) await tid(`check-fr-${n}`).click();
+  await tid('check-fr-9').click();
+  await tid('check-fr-8').click();
+  await page.waitForTimeout(200);
+  const attrs = await Promise.all(['fr-7', 'fr-8', 'fr-9'].map((id) => tid(`check-${id}`).getAttribute('aria-checked')));
+  check('기록 단계는 체크로 완료되지 않음', attrs.join() === 'true,false,false', attrs.join());
+  check('기록 단계 안내 표시', await text('이 단계는 체크로 끝나지 않아요').isVisible());
+  await shot('13-module-proof');
+  await tid('record-fr-8').click();
+  await tid('amount').waitFor();
+  await tid('amount').fill('150000');
+  await tid('save-record').click();
+  await page.waitForTimeout(300);
+  check('번 돈 기록이 첫 의뢰 단계를 완료', (await page.locator('body').innerText()).includes('첫 의뢰 완료하고 수익 기록'));
+  await page.goto('http://localhost:8099/module/freelance', { waitUntil: 'networkidle' });
+  await tid('check-fr-9').click();
+  await tid('check-fr-10').click();
+  await text('완주했어요').waitFor({ timeout: 5000 });
+  const doneText = await page.locator('body').innerText();
+  check('완주 화면에 이 길의 기록 합계', doneText.includes('번 돈 150,000원'));
+  await shot('14-module-finished');
+  await tid('start-next').click();
+  await page.waitForTimeout(500);
+  check('다음 길로 이동', page.url().includes('/module/') && !page.url().includes('freelance'), page.url());
 } catch (e) {
   check('시나리오 실행', false, String(e).slice(0, 300));
   await shot('99-error');
