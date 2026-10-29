@@ -21,11 +21,13 @@ export function todayMission(activeModules: string[], completed: Record<string, 
   return null;
 }
 
+// 달력 기준 날짜 차이: 월요일 밤에 했으면 목요일 아침은 3일째
 export function daysSince(iso: string | null, now: Date = new Date()): number | null {
   if (!iso) return null;
   const t = Date.parse(iso);
   if (Number.isNaN(t)) return null;
-  return Math.max(0, Math.floor((now.getTime() - t) / DAY));
+  const midnight = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  return Math.max(0, Math.round((midnight(now) - midnight(new Date(t))) / DAY));
 }
 
 export type EscortState = 'fresh' | 'onTrack' | 'stuck' | 'away';

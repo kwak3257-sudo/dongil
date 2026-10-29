@@ -70,7 +70,7 @@ export function Chip({ label, selected, onPress }: { label: string; selected: bo
   return (
     <Pressable
       accessibilityRole="checkbox"
-      accessibilityState={{ checked: selected }}
+      aria-checked={selected}
       onPress={onPress}
       style={[styles.chip, selected && styles.chipOn]}>
       <Text style={[styles.chipText, selected && { color: Colors.cream }]}>{label}</Text>

@@ -8,6 +8,7 @@
 - **모듈 1~3 체크리스트**: 새는 돈 막기, 세금 아끼기, 프리랜서 시작하기 (`lib/modules.ts`, 단계별 따라 하기 가이드 포함)
 - **계산 도구**: 구독, 비상금, 연금저축·IRP 세액공제(2025년 귀속 기준), 프리랜서 실수령, 소개글 초안 (`lib/tools.ts`)
 - **에스코트**: 오늘의 미션 1개, 3일 멈추면 코치가 먼저 말 걸기, 7일 쉬면 다시 시작 안내, 첫 수익 지도 (`lib/escort.ts`)
+- **알림**: 매일 아침 오늘의 미션, 3일 멈추면 코치 알림, 7일 쉬면 다시 시작 알림, 저녁 체크인. 앱을 안 열어도 2주 동안 이어지도록 기기에 예약 (`lib/reminders.ts`, `lib/notify.ts`). 웹에서는 꺼짐
 - **완료 인증**: 기록 탭에 번 돈·아낀 돈을 남기면, 지금 차례인 '기록 단계'가 자동 완료
 - **AI 코치**: 서버가 없으면 기기 안의 기본 코치, `EXPO_PUBLIC_AI_ENDPOINT`를 넣으면 Claude 코치 (`lib/ai.ts`, `supabase/functions/coach`)
 - 데이터는 기기에 저장(AsyncStorage). 로그인·서버 저장은 다음 단계.
@@ -33,7 +34,6 @@ npm run typecheck && npx expo lint
 
 - 구독 결제(RevenueCat), 7일 무료 체험
 - Supabase 로그인 + 기록 서버 저장
-- 푸시 알림(오늘의 미션, 저녁 체크인)
 - 모듈 4·5 체크리스트 추가: `lib/modules.ts`에 템플릿을 넣고 `lib/methods.ts`에서 `available: true`
 
 ## 출시

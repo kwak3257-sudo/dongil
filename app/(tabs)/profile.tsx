@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Logo } from '@/components/Logo';
+import { ReminderSettingsCard } from '@/components/Reminders';
 import { Body, Button, Card, Label, Screen } from '@/components/ui';
 import { Colors } from '@/constants/theme';
 import { aiConnected } from '@/lib/ai';
@@ -32,6 +33,7 @@ export default function Profile() {
         <Row k="월 목표" v={won(profile.goalMonthly)} />
         <Row k="위험 성향" v={RISK[profile.risk]} />
       </Card>
+      <ReminderSettingsCard />
       <Card>
         <Label>AI 코치</Label>
         <Body muted>{aiConnected ? 'AI 서버에 연결되어 있어요.' : '기본 코치로 동작 중이에요. EXPO_PUBLIC_AI_ENDPOINT를 설정하면 AI 코치가 켜져요.'}</Body>
