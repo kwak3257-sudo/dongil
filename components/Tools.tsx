@@ -35,7 +35,7 @@ function SubscriptionTool() {
         <Pressable
           key={`${i.name}-${idx}`}
           accessibilityRole="checkbox"
-          accessibilityState={{ checked: !!i.unused }}
+          aria-checked={!!i.unused}
           onPress={() => setItems(items.map((x, j) => (j === idx ? { ...x, unused: !x.unused } : x)))}
           style={styles.row}>
           <Text style={[styles.rowText, i.unused && styles.unused]}>{i.unused ? '☑' : '☐'} {i.name}</Text>

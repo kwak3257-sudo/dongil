@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 
 import { Colors } from '@/constants/theme';
 import { useStore } from '@/lib/store';
+import { useReminderSync } from '@/lib/useReminderSync';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -23,6 +24,7 @@ export default function RootLayout() {
   const segments = useSegments();
   const router = useRouter();
   const ready = fontsLoaded && hydrated;
+  useReminderSync();
 
   useEffect(() => {
     if (!ready) return;

@@ -2,8 +2,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { canCheck, lastDoneStep, methodOfStep, stepStatuses, type CheckResult } from './progress';
 import { recommendStart } from './ranking';
-import type { ChatMessage, MoneyRecord, Profile } from './types';
+import { DEFAULT_REMINDERS, type ReminderSettings } from './reminders';
+import { moduleFor } from './modules';
+import type { ChatMessage, MoneyRecord, Profile, Step } from './types';
 
 interface State {
   hydrated: boolean;
@@ -14,13 +17,16 @@ interface State {
   lastProgressAt: string | null;
   records: MoneyRecord[];
   chat: ChatMessage[];
+  reminders: ReminderSettings;
   completeOnboarding: (profile: Profile) => void;
-  toggleStep: (stepId: string) => void;
+  completeStep: (stepId: string) => CheckResult;
+  undoStep: (stepId: string) => boolean;
   startModule: (methodId: string) => void;
   stopModule: (methodId: string) => void;
-  addRecord: (r: Omit<MoneyRecord, 'id' | 'date'> & { date?: string }) => void;
+  addRecord: (r: Omit<MoneyRecord, 'id' | 'date'> & { date?: string }) => Step | null;
   removeRecord: (id: string) => void;
   pushChat: (m: ChatMessage) => void;
+  setReminders: (patch: Partial<ReminderSettings>) => void;
   resetAll: () => void;
 }
 
@@ -32,6 +38,7 @@ const initial = {
   lastProgressAt: null,
   records: [] as MoneyRecord[],
   chat: [] as ChatMessage[],
+  reminders: DEFAULT_REMINDERS,
 };
 
 const newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -50,16 +57,22 @@ export const useStore = create<State>()(
           activeModules: active.length ? active : [start],
         });
       },
-      toggleStep: (stepId) => {
+      completeStep: (stepId) => {
+        const methodId = methodOfStep(stepId);
+        if (!methodId) return 'unknown';
+        const result = canCheck(methodId, stepId, get().completed);
+        if (result !== 'ok') return result;
+        const now = new Date().toISOString();
+        set({ completed: { ...get().completed, [stepId]: now }, lastProgressAt: now });
+        return 'ok';
+      },
+      undoStep: (stepId) => {
+        const methodId = methodOfStep(stepId);
+        if (!methodId || lastDoneStep(methodId, get().completed)?.id !== stepId) return false;
         const completed = { ...get().completed };
-        if (completed[stepId]) {
-          delete completed[stepId];
-          set({ completed });
-        } else {
-          const now = new Date().toISOString();
-          completed[stepId] = now;
-          set({ completed, lastProgressAt: now });
-        }
+        delete completed[stepId];
+        set({ completed });
+        return true;
       },
       startModule: (methodId) => {
         const active = get().activeModules;
@@ -68,13 +81,23 @@ export const useStore = create<State>()(
       stopModule: (methodId) => set({ activeModules: get().activeModules.filter((m) => m !== methodId) }),
       addRecord: (r) => {
         const now = new Date().toISOString();
+        // 지금 차례인 단계가 같은 종류의 '기록' 단계면 함께 완료 (완료 인증)
+        const { completed } = get();
+        let proofStep: Step | null = null;
+        if (r.methodId) {
+          const status = stepStatuses(r.methodId, completed);
+          proofStep = moduleFor(r.methodId)?.steps.find((s) => status[s.id] === 'current' && s.proof === r.kind) ?? null;
+        }
         set({
           records: [{ ...r, id: newId(), date: r.date ?? now }, ...get().records],
+          completed: proofStep ? { ...completed, [proofStep.id]: now } : completed,
           lastProgressAt: now,
         });
+        return proofStep;
       },
       removeRecord: (id) => set({ records: get().records.filter((r) => r.id !== id) }),
       pushChat: (m) => set({ chat: [...get().chat, m].slice(-100) }),
+      setReminders: (patch) => set({ reminders: { ...get().reminders, ...patch } }),
       resetAll: () => set({ ...initial }),
     }),
     {
